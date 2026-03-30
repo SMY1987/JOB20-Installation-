@@ -1,74 +1,76 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class Installation {
     public static void main(String[] args) {
 
         String basePath = "C:\\Users\\1\\Desktop\\Games";
 
-        File gamesDir = new File(basePath);
-
-        if (!gamesDir.exists()) {
-            System.out.println("Ошибка: папка Games не найдена по пути " + basePath);
-            return;
-        }
-
         StringBuilder log = new StringBuilder();
-        log.append("Начало установки игры...\n");
 
+        List<String> directoryPaths = Arrays.asList(
+                basePath + "\\src",
+                basePath + "\\res",
+                basePath + "\\savegames",
+                basePath + "\\temp",
+                basePath + "\\src\\main",
+                basePath + "\\src\\test",
+                basePath + "\\res\\drawables",
+                basePath + "\\res\\vectors",
+                basePath + "\\res\\icons"
+        );
+        List<String> filePaths = Arrays.asList(
+                basePath + "\\src\\main\\Main.java",
+                basePath + "\\src\\main\\Utils.java",
+                basePath + "\\temp\\temp.txt"
+        );
         try {
 
-            File srcDir = createDirectory(gamesDir, "src", log);
-            File resDir = createDirectory(gamesDir, "res", log);
-            File savegamesDir = createDirectory(gamesDir, "savegames", log);
-            File tempDir = createDirectory(gamesDir, "temp", log);
-            File mainDir = createDirectory(srcDir, "main", log);
-            createDirectory(srcDir, "test", log);
-            createFile(mainDir, "Main.java", log);
-            createFile(mainDir, "Utils.java", log);
-            createDirectory(resDir, "drawables", log);
-            createDirectory(resDir, "vectors", log);
-            createDirectory(resDir, "icons", log);
-
-            File tempFile = new File(tempDir, "temp.txt");
-            if (tempFile.createNewFile()) {
-                log.append("Файл temp.txt успешно создан\n");
-            } else {
-                log.append("Ошибка: не удалось создать файл temp.txt\n");
+            for (String path : directoryPaths) {
+                createDirectory(path, log);
             }
-            writeLogToFile(tempFile, log.toString());
-            log.append("Установка завершена успешно!\n");
+
+
+            for (String path : filePaths) {
+                createFile(path, log);
+            }
+
+
+            String logFilePath = basePath + "\\temp\\temp.txt";
+            try (FileWriter writer = new FileWriter(logFilePath)) {
+                writer.write(log.toString());
+            }
+
+            System.out.println("Установка завершена успешно!");
+            System.out.println("Проверьте папку Games и файл temp.txt для подробной информации.");
 
         } catch (IOException e) {
-            log.append("Произошла ошибка ввода‑вывода: ").append(e.getMessage()).append("\n");
-            System.err.println("Ошибка: " + e.getMessage());
+            System.err.println("Произошла ошибка ввода‑вывода: " + e.getMessage());
         }
-        System.out.println(log.toString());
     }
 
-    private static File createDirectory(File parent, String dirName, StringBuilder log) {
-        File dir = new File(parent, dirName);
-        if (dir.mkdir()) {
-            log.append("Директория ").append(dir.getAbsolutePath()).append(" успешно создана\n");
+    private static void createDirectory(String fullPath, StringBuilder log) {
+        File directory = new File(fullPath);
+        boolean created = directory.mkdirs();
+
+        if (created) {
+            log.append("Создана директория: ").append(fullPath).append("\n");
         } else {
-            log.append("Ошибка: не удалось создать директорию ").append(dir.getAbsolutePath()).append("\n");
+            log.append("Не удалось создать директорию: ").append(fullPath).append("\n");
         }
-        return dir;
     }
 
-    private static void createFile(File parent, String fileName, StringBuilder log) throws IOException {
-        File file = new File(parent, fileName);
-        if (file.createNewFile()) {
-            log.append("Файл ").append(file.getAbsolutePath()).append(" успешно создан\n");
+    private static void createFile(String fullPath, StringBuilder log) throws IOException {
+        File file = new File(fullPath);
+        boolean created = file.createNewFile();
+
+        if (created) {
+            log.append("Создан файл: ").append(fullPath).append("\n");
         } else {
-            log.append("Ошибка: файл ").append(file.getAbsolutePath()).append(" уже существует или не удалось создать\n");
-        }
-    }
-
-    private static void writeLogToFile(File logFile, String logContent) throws IOException {
-        try (FileWriter writer = new FileWriter(logFile)) {
-            writer.write(logContent);
+            log.append("Не удалось создать файл: ").append(fullPath).append("\n");
         }
     }
 }
